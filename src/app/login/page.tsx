@@ -1,25 +1,51 @@
 "use client";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Axios } from "axios";
+import axios, { Axios } from "axios";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [user, setUser] = useState({
     email: "",
     password: "",
   });
 
-  const onLogin = async () => {};
+  const [buttonDisabled, setButtonDisabled] = useState(false);
+  const [loading, setloading] = useState(false);
+
+  useEffect(() => {
+    if (user.email.length > 0 && user.password.length) {
+      setButtonDisabled(false);
+    } else {
+      setButtonDisabled(true);
+    }
+  }, [user]);
+
+  const onLogin = async () => {
+    try {
+      setloading(true);
+      const response = await axios.post("/api/users/login", user);
+      console.log("login success", response.data);
+      toast.success("login success");
+      router.push("/profile");
+    } catch (error: any) {
+      console.log("login failed", error.message);
+      toast.error(error.message);
+    } finally {
+      setloading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2">
-      <h1>Login</h1>
+      <h1>{loading ? "processing" : "login"}</h1>
       <hr />
 
       <label htmlFor="email">email</label>
       <input
-        className="p-2"
+        className="p-2 text-black"
         type="email"
         id="email"
         value={user.email}
@@ -28,7 +54,7 @@ export default function LoginPage() {
       />
       <label htmlFor="password">password</label>
       <input
-        className="p-2"
+        className="p-2 text-black"
         type="password"
         id="password"
         value={user.password}
